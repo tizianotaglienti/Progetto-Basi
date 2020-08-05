@@ -200,6 +200,85 @@ insert into `Gestione` values ( codice_fiscale_operatore, codice_fiscale);
 END
 
 
+...report_oggetto
+CREATE PROCEDURE `report_oggetto`(in codice_oggetto varchar(16))
+BEGIN
+    declare var_corso_laurea int; 
+    declare var_matricola int;
+
+    declare done int default false;
+	declare cur cursor for select `corso_laurea` from `iscrizioni_studenti` where `matricola` = var_matricola order by `data_iscrizione` desc;
+    declare continue handler for not found set done = true;
+
+	declare exit handler for sqlexception
+    begin
+        rollback;  -- rollback any changes made in the transaction
+        resignal;  -- raise again the sql exception to the caller
+    end;
+    
+    -- Create a table to store temporary results to be returned to the caller
+	-- A temporary table is per-session
+    drop temporary table if exists `average_scores`;
+	create temporary table `average_scores` (
+		`corso di laurea` varchar(45),
+        `data iscrizione` date,
+        `data laurea` date,
+		`media` double
+	);
+
+    set transaction isolation level serializable;
+    start transaction;
+    
+		select `matricola` from `studenti` where `username` = var_username into var_matricola;
+    
+		open cur;
+		read_loop: loop
+	
+			fetch cur into var_corso_laurea;
+			if done then
+				leave read_loop;
+			end if;
+            
+			insert into `average_scores`
+            select `nome`, `data_iscrizione`, `data_laurea`, avg(voto)
+            from `iscrizioni_studenti`
+            join `corsi_laurea` on `corso_laurea` = `codice`
+            join `appelli_esame` on `iscrizioni_studenti`.`matricola` = `appelli_esame`.`matricola`
+            where `appelli_esame`.`corso_laurea` = var_corso_laurea
+            and `appelli_esame`.`matricola` = var_matricola;
+            
+		end loop;
+        close cur;
+    
+		-- Return average scores to the caller
+        select * from `average_scores`;
+        
+        -- Now retrieve information about single per-degree exams
+		set done = false;
+		open cur;
+		read_loop: loop
+	
+			fetch cur into var_corso_laurea;
+			if done then
+				leave read_loop;
+			end if;
+            
+			select `esame`, `data`, `voto`
+				from `appelli_esame`
+                join `corsi_laurea` on `codice` = `corso_laurea`
+				where `matricola` = var_matricola
+				and `corso_laurea` = var_corso_laurea
+				order by `data` desc;
+            
+		end loop;
+        close cur;
+
+    commit;
+    
+    drop temporary table `average_scores`;
+END
+
+
 
 
 
