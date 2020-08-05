@@ -1,0 +1,252 @@
+...create_user
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `create_user`(  in cf VARCHAR(16), in pass VARCHAR(45), in ruolo VARCHAR(45))
+
+BEGIN
+	
+	insert into Utente VALUES(cf, MD5(pass), ruolo);
+
+END
+
+
+...login
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `login`(in cf varchar(16), in pass varchar(45), out var_role INT)
+
+BEGIN
+
+	declare var_user_role ENUM('utente', 'amministratore');
+
+    
+    
+
+
+	select u.`ruolo` into var_user_role
+
+	from `Utente` as u
+	
+	where u.`cf` = cf
+     
+   	and u.`password` = md5(pass);
+	
+    
+        
+
+
+
+	-- See the corresponding enum in the client
+	
+	if var_user_role = 'utente' then
+		
+	set var_role = 1;
+	
+	elseif var_user_role = 'amministratore' then
+		
+	set var_role = 2;
+	
+		
+	else
+		
+	set var_role = 3;
+	
+	end if;
+END
+
+
+...visualizza_utente
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `visualizza_utente`(in codice_fiscale_utente VARCHAR(16))
+
+BEGIN
+
+    declare var_count int;
+   
+ 
+
+    declare exit handler for sqlexception
+  
+    begin
+    
+    	rollback;  
+    
+    	resignal;  
+  
+    end;
+
+	
+
+
+    set transaction read only;
+
+    set transaction isolation level repeatable read;
+	
+	#voglio evitare le letture dirty e le letture non ripetibili
+   
+        # se cambia un dato voglio essere aggiornato
+	
+	select count(*) into var_count
+	
+	from `ClienteSocieta`
+	
+	where `Utente`= codice_fiscale_utente;
+	
+	
+	
+	if var_count > 0 then
+	
+		#se ci sono entry nella tabella ClienteSocieta il cliente è un referente di una società
+        
+		#nella select prendo anche partita iva e nome societa
+   
+	        select cliente.`cf`, cliente.`nome`, cliente.`cognome`, cliente.`email` , cliente.`dataNascita`, cliente.`email`, cliente.`indirizzo`, cliente.`fax`, c.`partitaIVA`, c.`nomeSocieta`
+		
+		from `Cliente` as cliente 
+	
+			join `ClienteSocieta` as c on cliente.`cf` = c.`cliente`
+	
+		where cliente.`cf` = codice_fiscale_cliente;
+	
+	elseif var_count = 0 then
+	
+		#se non ci sono entry il cliente passato è un semplice cliente
+	
+		select cliente.`cf`, cliente.`nome`, cliente.`cognome`, cliente.`email` , cliente.`dataNascita`, cliente.`email`, cliente.`indirizzo`, cliente.`fax`
+	
+		from `Cliente` as cliente 
+	
+		where cliente.`cf` = codice_fiscale_cliente;
+	
+	end if;
+
+    commit;
+
+
+END
+
+
+...inserisci_utente
+CREATE DEFINER=`root`@`localhost` PROCEDURE `inserisci_cliente`(in codice_fiscale VARCHAR(16), in nome VARCHAR(45), in cognome VARCHAR(45), in email VARCHAR(45), in indirizzo VARCHAR(45), in fax VARCHAR(45), in data_nascita date, in numero_telefono int, in codice_fiscale_operatore VARCHAR(16), in codice_fiscale_member VARCHAR(16))
+
+BEGIN
+
+	declare var_num_cliente int;  #variabile per verificare la presenza del cliente
+   
+ 
+    	declare exit handler for sqlexception
+
+    	begin
+    
+    		rollback;
+  
+      	resignal;
+  
+    	end;
+
+
+    
+    set transaction isolation level read committed;
+
+    	#evito le letture dirty
+ 
+    	start transaction;
+
+		#transazione per controllare prima se il cliente
+
+        	#che voglio aggiungere nel sistema è gia presente
+
+        	#se non e presente lo aggiungo al sistema
+
+        	select count(*)
+ 
+		from `Inserimento`
+ 
+        	where `cliente` = codice_fiscale
+
+        	into var_num_cliente;
+
+        
+	
+	if var_num_cliente > 0 then
+
+		signal sqlstate '45001' set message_text = "The client is already registered in the CRM system";
+
+	end if;
+
+
+        #se il cliente non e gia registrato creo l'utente cliente e il rispettivo cliente con i dati passati
+
+	call `create_user`( codice_fiscale, codice_fiscale, 'cliente');
+
+	insert into `Cliente` (`cf`, `nome`, `cognome`, `dataNascita`, `email`, `indirizzo`, `fax`) values (codice_fiscale, nome, cognome, data_nascita, email, indirizzo, fax);
+
+	insert into `Telefono` (`numero`, `cliente`) values (numero_telefono, codice_fiscale);
+
+	insert into `Inserimento` values ( codice_fiscale_member, codice_fiscale, curdate());
+
+        
+insert into `Gestione` values ( codice_fiscale_operatore, codice_fiscale);
+
+	#imposto come username il codice fiscale --> potrei farlo cambiare all'utente insieme alla password
+
+	
+	
+  
+      
+    
+    
+
+    commit;
+
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
