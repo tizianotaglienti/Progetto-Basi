@@ -1,0 +1,24 @@
+CREATE PROCEDURE `lista_oggetti` (in codice_oggetto VARCHAR(16), in codice_fiscale VARCHAR(16))
+BEGIN
+	declare var_num_offerte int;
+	# un utente vede gli oggetti per cui ha fatto almeno un'offerta
+	set transaction read only;
+	set transaction isolation level read committed;
+		# prendo oggetti from offerta join oggetto join utente
+		# where var_num_offerte > 0
+		
+		select count(*)
+		from `Offerta` join `Utente` on `utente` = `cf`
+		where `oggetto` = codice_oggetto
+		into var_num_offerte;
+		
+		if var_num_offerte > 0 then
+			select `codice`, `descrizione`, `prezzo`, `dimensioni`, `colore`, `condizioni`
+			from `Offerta` join `Oggetto` on `oggetto` = `codice` join `Utente` on `utente` = `cf`
+			where `cf` = codice_fiscale
+			group by `oggetto`;
+		endif;
+	commit;
+END
+
+

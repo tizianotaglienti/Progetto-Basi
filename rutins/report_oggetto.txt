@@ -1,0 +1,15 @@
+CREATE PROCEDURE `report_oggetto`(in codice_oggetto varchar(16))
+BEGIN
+	declare
+	
+	declare exit handler for sqlexception
+	begin
+		rollback;
+		resignal;
+	end;
+			
+	
+	drop temporary table if exists `offerte_oggetto`;
+	create temporary table `offerte_oggetto` (
+		
+	

@@ -1,0 +1,24 @@
+CREATE PROCEDURE `vendi_oggetto` (in codice_oggetto VARCHAR(16), in tempoMancante time, in valoreOfferta int) # ricontrolla nomi attributi
+BEGIN
+	# oggetto acquistato che prende il codice oggetto e l'offerta più alta dell'asta a tempo mancante = 0
+	
+	declare exit handler for sqlexception
+
+	begin
+
+        	rollback;
+  
+        	resignal;
+  
+    	end;
+	set transaction isolation level read committed;
+
+	start transaction;
+	
+		if tempoMancante = 0 then
+		
+			insert into `OggettoAcquistato` (`oggetto`, `valoreFinale`) values (codice_oggetto, valoreOfferta);
+		endif;
+	commit;
+END
+	

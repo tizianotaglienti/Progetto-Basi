@@ -1,0 +1,10 @@
+CREATE PROCEDURE `visualizza_asta` (in codice_oggetto VARCHAR(16))
+BEGIN
+	# asta visualizzata: utente ottiene
+	# tempo mancante, numero offerte, valore attuale
+	select a.`tempoMancante`, a.`numeroOfferte`, a.`valoreAttuale`, a.`oggetto`
+	from `Asta` as a join `Oggetto` as o on a.`oggetto` = o.`codice`
+	where a.`oggetto` = codice_oggetto;
+
+END
+	
