@@ -9,7 +9,7 @@ BEGIN
 	end;
 			
 	
-	drop temporary table if exists `offerte_oggetto`;
-	create temporary table `offerte_oggetto` (
 		
-	
+	# per ogni oggetto devo selezionare lo storico delle offerte
+	# tutte le offerte, anche quelle generate dal sistema di controfferta automatica
+
