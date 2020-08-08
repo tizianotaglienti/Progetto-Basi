@@ -1,6 +1,6 @@
 CREATE PROCEDURE `report_oggetto`(in codice_oggetto varchar(16))
 BEGIN
-	declare
+	declare 
 	
 	declare exit handler for sqlexception
 	begin
@@ -9,7 +9,39 @@ BEGIN
 	end;
 			
 	
-		
-	# per ogni oggetto devo selezionare lo storico delle offerte
-	# tutte le offerte, anche quelle generate dal sistema di controfferta automatica
+	
+	# creo una tabella che contiene, per ogni oggetto, utente importo istante delle offerte
 
+	drop temporary table if exists `offerte_oggetto`;
+	create temporary table `offerte_oggetto` (
+		`utente` varchar(16),
+		`importo_offerta` int,
+		`istante_offerta` datetime
+	);
+
+	set transaction level serializable;
+	start transaction;
+		
+		open cur;
+		read_loop: loop
+		
+			fetch cur into var_
+			if done then
+				leave read_loop;
+			end if;
+			
+			insert into `offerte_oggetto`
+			select `utente`, `importo`, `istante`
+			from Offerta
+			where `oggetto` = codice_oggetto;
+		
+	
+
+		end loop;
+		close cur;
+
+		# restituisco lo storico offerte al chiamante
+		select * from `offerte_oggetto`;
+	commit;
+	drop temporary table `offerte_oggetto`;
+END
