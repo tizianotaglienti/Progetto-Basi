@@ -1,0 +1,27 @@
+funzionalità make an offer:
+
+prende 	codice fiscale di utente corrente
+prende 	codice oggetto per cui viene fatta l'offerta
+prende 	un importo (di offerta)
+       	un importo di controfferta
+       	una controfferta_str che è un enumeratore con due casi	
+
+un utente sceglie l'oggetto per cui fare l'offerta
+l'importo dell'offerta deve essere maggiore (almeno di 0,5€) rispetto al valore attuale di offerta
+il valore attuale di offerta viene aggiornato
+queste offerte hanno il valore di controfferta_str = "offerta generata da un utente"
+
+l'utente può inserire l'importo di controfferta
+ha senso solo se è più grande, almeno di un euro, dell'importo di offerta
+la controfferta consiste in un'offerta automatica rialzata di 50 centesimi rispetto all'ultima
+un'offerta generata in questo modo ha il valore controfferta_str = "offerta generata dal sistema automatico di controfferta"
+
+in ogni caso, si aggiunge un'offerta alla tabella offerta (funziona)
+
+quando l'oggetto viene acquistato (tempo rimanente = 00:00:00)
+l'asta sparisce
+dovrei togliere i soldi dalla carta di credito dell'utente
+e associare l'oggetto acquistato all'utente che se l'è aggiudicato
+viene salvato l'importo dell'ultima offerta come valore massimo
+
+
