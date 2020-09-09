@@ -25,3 +25,7 @@ e associare l'oggetto acquistato all'utente che se l'è aggiudicato
 viene salvato l'importo dell'ultima offerta come valore massimo
 
 
+lista oggetti interessati:
+colonna chiamata acquistato con 'si' o 'no'
+
+
